@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<script type="application/json" id="cowork-artifact-meta">
+{
+  "name": "AIVC Family — Konsolidiertes Dashboard",
+  "schemaVersion": 1,
+  "description": "Konsolidiertes Dashboard der AI Value Capture Diagnostik-Familie (5 Ebenen: AIVCH, AIVCO, AIVCIR, AIVCHW, AIVCIO) — Reife & Durchdringung über die Unternehmenskaskade von Führung bis Prozess. Demo-Daten mit Bruchsignatur 'Führung weit voraus, Prozesse zurück'. Adressat: Unternehmensführung mit Drill-Down."
+}
+</script>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIVC Family — Konsolidiertes Dashboard</title>
+<style>
+  :root {
+    color-scheme: light;
+    --apex-navy: #1D4477;
+    --apex-sky: #00B1EB;
+    --apex-teal: #3ED8C3;
+    --apex-deep-teal: #00A19F;
+    --apex-dark-teal: #005E65;
+    --apex-charcoal: #52555C;
+    --apex-black: #000000;
+    --apex-white: #FFFFFF;
+    --apex-light-gray: #E8E8E4;
+    --apex-mid-gray: #ADAFB1;
+    --score-red: #C62828;
+    --score-amber: #E65100;
+    --score-green: #2E7D32;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--apex-white); color: var(--apex-black); line-height: 1.5; }
+
+  /* HEADER */
+  .header { background: var(--apex-navy); color: var(--apex-white); padding: 28px 28px 24px; }
+  .header-top { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; }
+  .header h1 { font-size: 24px; font-weight: 700; letter-spacing: -0.3px; }
+  .header .subtitle { font-size: 14px; opacity: 0.78; margin-top: 6px; max-width: 760px; }
+  .header .badge { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); border-radius: 6px; padding: 5px 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
+  .header-meta { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+  .meta-chip { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; padding: 4px 12px; font-size: 11px; }
+
+  /* SECTIONS */
+  .content { padding: 26px 28px 32px; max-width: 1200px; margin: 0 auto; }
+  .section { margin-bottom: 38px; }
+  .section-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--apex-deep-teal); margin-bottom: 6px; }
+  .section-header { font-size: 19px; font-weight: 700; color: var(--apex-navy); margin-bottom: 8px; }
+  .section-lead { font-size: 13.5px; color: var(--apex-charcoal); max-width: 820px; margin-bottom: 18px; }
+
+  /* HERO CASCADE */
+  .cascade { position: relative; }
+  .cascade-rail { position: absolute; left: 31px; top: 22px; bottom: 22px; width: 3px; background: linear-gradient(to bottom, var(--apex-sky) 0%, var(--apex-teal) 35%, var(--apex-deep-teal) 65%, var(--apex-mid-gray) 100%); border-radius: 2px; z-index: 0; }
+  .layer-card { position: relative; z-index: 1; display: grid; grid-template-columns: 60px 1fr 240px 28px; align-items: center; gap: 16px; padding: 16px 18px 16px 12px; margin-bottom: 12px; background: var(--apex-white); border: 1px solid var(--apex-light-gray); border-radius: 12px; cursor: pointer; transition: all 0.18s ease; }
+  .layer-card:hover { border-color: var(--apex-sky); box-shadow: 0 4px 16px rgba(0,177,235,0.14); transform: translateX(2px); }
+  .layer-card:focus { outline: 2px solid var(--apex-sky); outline-offset: 2px; }
+  .layer-marker { width: 44px; height: 44px; border-radius: 50%; background: var(--apex-navy); color: var(--apex-white); display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1; font-weight: 700; box-shadow: 0 0 0 4px var(--apex-white); }
+  .layer-marker .l-letter { font-size: 13px; letter-spacing: 0.3px; }
+  .layer-marker .l-ord { font-size: 8.5px; opacity: 0.75; margin-top: 1px; }
+  .layer-info .l-title { font-size: 16px; font-weight: 700; color: var(--apex-navy); }
+  .layer-info .l-subtitle { font-size: 12px; color: var(--apex-charcoal); margin-top: 2px; font-weight: 600; }
+  .layer-info .l-desc { font-size: 12.5px; color: var(--apex-charcoal); margin-top: 6px; line-height: 1.45; }
+
+  .layer-metrics { display: flex; flex-direction: column; gap: 8px; }
+  .m-row { display: flex; align-items: center; gap: 10px; }
+  .m-label { font-size: 9.5px; color: var(--apex-charcoal); text-transform: uppercase; letter-spacing: 0.5px; min-width: 84px; font-weight: 600; }
+  .m-score { font-size: 16px; font-weight: 800; min-width: 44px; text-align: right; }
+  .m-bar { flex: 1; height: 6px; background: var(--apex-light-gray); border-radius: 3px; overflow: hidden; }
+  .m-bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+  .layer-arrow { color: var(--apex-mid-gray); font-size: 22px; text-align: right; font-weight: 300; }
+
+  .score-red-text { color: var(--score-red); }
+  .score-amber-text { color: var(--score-amber); }
+  .score-green-text { color: var(--score-green); }
+  .bar-red { background: var(--score-red); }
+  .bar-amber { background: var(--score-amber); }
+  .bar-green { background: var(--score-green); }
+
+  /* DRAWER */
+  .drawer-backdrop { position: fixed; inset: 0; background: rgba(29, 68, 119, 0.42); z-index: 90; opacity: 0; pointer-events: none; transition: opacity 0.22s; }
+  .drawer-backdrop.open { opacity: 1; pointer-events: auto; }
+  .drawer { position: fixed; right: 0; top: 0; bottom: 0; width: min(560px, 100vw); background: var(--apex-white); z-index: 100; transform: translateX(100%); transition: transform 0.28s ease; overflow-y: auto; box-shadow: -8px 0 24px rgba(0,0,0,0.14); }
+  .drawer.open { transform: translateX(0); }
+  .drawer-header { background: var(--apex-navy); color: var(--apex-white); padding: 24px 24px 20px; position: relative; }
+  .drawer-close { position: absolute; top: 14px; right: 14px; background: rgba(255,255,255,0.18); border: none; color: var(--apex-white); width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 18px; line-height: 1; }
+  .drawer-close:hover { background: rgba(255,255,255,0.28); }
+  .drawer-title { font-size: 18px; font-weight: 700; padding-right: 40px; }
+  .drawer-subtitle { font-size: 12px; opacity: 0.78; margin-top: 4px; font-weight: 600; }
+  .drawer-meta-row { display: flex; gap: 24px; margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.22); }
+  .drawer-meta-item { font-size: 10px; opacity: 0.85; text-transform: uppercase; letter-spacing: 0.5px; }
+  .drawer-meta-item strong { display: block; font-size: 20px; font-weight: 800; opacity: 1; margin-top: 3px; text-transform: none; letter-spacing: 0; }
+  .drawer-body { padding: 20px 24px 36px; }
+  .drawer-section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--apex-deep-teal); margin: 20px 0 10px; }
+  .drawer-section-title:first-child { margin-top: 0; }
+  .sub-dim { display: grid; grid-template-columns: 1fr 56px 110px; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--apex-light-gray); }
+  .sub-dim:last-child { border-bottom: none; }
+  .sub-name { font-size: 13px; color: var(--apex-black); }
+  .sub-score { font-size: 14px; font-weight: 700; text-align: right; }
+  .sub-bar { height: 5px; background: var(--apex-light-gray); border-radius: 3px; overflow: hidden; }
+  .sub-bar-fill { height: 100%; border-radius: 3px; }
+  .reading-block { background: var(--apex-light-gray); border-left: 4px solid var(--apex-sky); padding: 12px 14px; border-radius: 0 8px 8px 0; font-size: 13px; color: var(--apex-charcoal); line-height: 1.55; }
+
+  /* BRUECHE-LENS */
+  .breach-grid { display: grid; grid-template-columns: 240px 1fr; gap: 16px; }
+  .consistency-card { background: var(--apex-navy); color: var(--apex-white); border-radius: 12px; padding: 20px; text-align: center; }
+  .consistency-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; opacity: 0.82; }
+  .consistency-value { font-size: 44px; font-weight: 800; margin: 8px 0 2px; line-height: 1; }
+  .consistency-scale { font-size: 11px; opacity: 0.7; }
+  .consistency-rating { font-size: 13px; font-weight: 700; padding: 4px 14px; border-radius: 20px; display: inline-block; margin-top: 12px; }
+  .rating-low { background: var(--score-red); color: var(--apex-white); }
+  .rating-mid { background: var(--score-amber); color: var(--apex-white); }
+  .rating-high { background: var(--score-green); color: var(--apex-white); }
+  .consistency-foot { font-size: 11px; opacity: 0.72; margin-top: 12px; line-height: 1.4; }
+
+  .gaps-list { display: flex; flex-direction: column; gap: 12px; }
+  .gap-card { background: var(--apex-white); border: 1px solid var(--apex-light-gray); border-left: 4px solid var(--apex-sky); border-radius: 8px; padding: 14px 16px; }
+  .gap-pair { font-size: 10.5px; color: var(--apex-deep-teal); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 4px; font-weight: 700; }
+  .gap-title { font-size: 14px; font-weight: 700; color: var(--apex-navy); margin-bottom: 4px; }
+  .gap-desc { font-size: 12.5px; color: var(--apex-charcoal); line-height: 1.5; }
+
+  /* HEATMAP */
+  .heatmap-wrap { overflow-x: auto; }
+  .heatmap { display: grid; grid-template-columns: 180px repeat(5, 1fr); gap: 3px; min-width: 700px; }
+  .hm-cell { padding: 10px 8px; font-size: 12px; text-align: center; border-radius: 5px; }
+  .hm-corner { background: transparent; }
+  .hm-col-header { background: var(--apex-navy); color: var(--apex-white); font-weight: 700; font-size: 11px; padding: 12px 6px; line-height: 1.2; }
+  .hm-row-header { background: var(--apex-light-gray); color: var(--apex-navy); font-weight: 700; font-size: 12px; text-align: left; padding: 12px 12px; }
+  .hm-row-header .rh-sub { display: block; font-weight: 500; font-size: 10.5px; color: var(--apex-charcoal); margin-top: 2px; }
+  .hm-data { color: var(--apex-black); font-weight: 700; font-size: 13.5px; padding: 16px 6px; }
+  .hm-legend { display: flex; align-items: center; gap: 10px; margin-top: 14px; font-size: 11px; color: var(--apex-charcoal); flex-wrap: wrap; }
+  .hm-legend-bar { display: flex; height: 10px; border-radius: 5px; overflow: hidden; flex: 0 0 240px; }
+  .hm-legend-bar span { flex: 1; }
+
+  /* INTERVENTIONS */
+  .interv-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 14px; }
+  .interv-card { background: var(--apex-white); border: 1px solid var(--apex-light-gray); border-radius: 12px; padding: 18px; border-top: 4px solid var(--apex-teal); }
+  .interv-prio { display: inline-block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; background: var(--apex-teal); color: var(--apex-navy); padding: 3px 9px; border-radius: 4px; margin-bottom: 10px; }
+  .interv-card.prio-2 { border-top-color: var(--apex-sky); }
+  .interv-card.prio-2 .interv-prio { background: var(--apex-sky); color: var(--apex-white); }
+  .interv-card.prio-3 { border-top-color: var(--apex-deep-teal); }
+  .interv-card.prio-3 .interv-prio { background: var(--apex-deep-teal); color: var(--apex-white); }
+  .interv-title { font-size: 15px; font-weight: 700; color: var(--apex-navy); margin-bottom: 6px; }
+  .interv-targets { font-size: 11px; color: var(--apex-deep-teal); margin-bottom: 10px; font-weight: 600; }
+  .interv-desc { font-size: 13px; color: var(--apex-charcoal); line-height: 1.5; margin-bottom: 12px; }
+  .interv-methods { font-size: 11px; color: var(--apex-navy); font-weight: 600; padding-top: 10px; border-top: 1px solid var(--apex-light-gray); }
+  .interv-methods em { font-style: normal; color: var(--apex-charcoal); font-weight: 500; }
+
+  /* FOOTER */
+  .footer { background: var(--apex-dark-teal); color: var(--apex-white); padding: 22px 28px; font-size: 11.5px; }
+  .footer-row { display: flex; flex-wrap: wrap; gap: 28px; justify-content: space-between; max-width: 1200px; margin: 0 auto; }
+  .footer-item strong { display: block; opacity: 0.7; text-transform: uppercase; letter-spacing: 0.5px; font-size: 9.5px; margin-bottom: 4px; font-weight: 700; }
+
+  @media (max-width: 760px) {
+    .layer-card { grid-template-columns: 50px 1fr 24px; grid-template-rows: auto auto; }
+    .layer-metrics { grid-column: 1 / -1; }
+    .layer-arrow { grid-column: 3; grid-row: 1; }
+    .breach-grid { grid-template-columns: 1fr; }
+    .content { padding: 20px 18px; }
+    .cascade-rail { left: 26px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <h1>AIVC Family — Konsolidiertes Dashboard</h1>
+      <div class="subtitle">Reife und Durchdringung von KI-Wertschöpfung über die fünf Ebenen der Unternehmenskaskade — von der Führungsebene bis in die Prozessebene.</div>
+    </div>
+    <div class="badge">Demo-Daten</div>
+  </div>
+  <div class="header-meta">
+    <div class="meta-chip">Stichtag: 2026-05-11</div>
+    <div class="meta-chip">5 Instrumente · 25 Sub-Dimensionen</div>
+    <div class="meta-chip">Bruchsignatur: Führung voraus · Prozesse zurück</div>
+    <div class="meta-chip">Adressat: Unternehmensführung</div>
+  </div>
+</div>
+
+<div class="content">
+
+  <section class="section">
+    <div class="section-title">Ebenenkaskade</div>
+    <div class="section-header">Reife und Durchdringung — fünf Ebenen, eine Organisation</div>
+    <div class="section-lead">Die fünf Diagnostik-Instrumente vermessen die Organisation entlang einer vertikalen Kaskade: von der Führungsebene oben bis zur Prozessebene unten. Jede Karte zeigt den Composite-Wert für Reife (0 bis 10) und Durchdringung (0 bis 100 Prozent). Eine Karte anklicken öffnet die Sub-Dimensionen und die Lesart aus Coach-Sicht.</div>
+    <div class="cascade" id="cascade">
+      <div class="cascade-rail"></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-title">Brüche-Lens</div>
+    <div class="section-header">Wo Energie verpufft — Konsistenz über die Ebenen</div>
+    <div class="section-lead">Der Konsistenz-Index misst, wie geschlossen die Reife über die fünf Ebenen verläuft. Hoher Wert: Strategie, Struktur, Technologie und Praxis greifen ineinander. Niedriger Wert: Brüche — Stellen, an denen Energie hängenbleibt oder Verlautbarung nicht in Wirkung übersetzt wird.</div>
+    <div class="breach-grid">
+      <div class="consistency-card">
+        <div class="consistency-label">Konsistenz-Index</div>
+        <div class="consistency-value" id="consistencyValue">—</div>
+        <div class="consistency-scale">von 10</div>
+        <div class="consistency-rating rating-low" id="consistencyRating">niedrig</div>
+        <div class="consistency-foot">Reife-Spannweite über alle Ebenen: <strong id="reifeSpan">—</strong> Punkte</div>
+      </div>
+      <div class="gaps-list" id="gapsList"></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-title">Querschnitts-Heatmap</div>
+    <div class="section-header">Geteilte Dimensionen — wo jede Ebene stark, wo dünn ist</div>
+    <div class="section-lead">Quer durch alle fünf Instrumente gibt es geteilte Dimensionen, in denen sich Reife lesen lässt. Die Heatmap zeigt das Ebenenprofil im Querschnitt — Werte 0 bis 10. Spalten gelesen: wo eine Dimension im ganzen Haus stark oder schwach ist. Zeilen gelesen: das Profil einer Ebene.</div>
+    <div class="heatmap-wrap">
+      <div class="heatmap" id="heatmap"></div>
+    </div>
+    <div class="hm-legend">
+      <span>0</span>
+      <div class="hm-legend-bar">
+        <span style="background:#C62828"></span>
+        <span style="background:#E65100"></span>
+        <span style="background:#F9A825"></span>
+        <span style="background:#9CCC65"></span>
+        <span style="background:#2E7D32"></span>
+      </div>
+      <span>10</span>
+      <span style="margin-left: 8px;">Reife pro Dimension und Ebene</span>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-title">Empfohlene Interventionsschwerpunkte</div>
+    <div class="section-header">Drei Hebel, gegen die identifizierten Brüche gerichtet</div>
+    <div class="section-lead">Aus den Brüchen abgeleitet, priorisiert nach erwarteter Hebelwirkung auf das Gesamtsystem. Methodik-Verweise zeigen, welche Werkstätten im Coach HQ und in der AI-Value-Capturer-Library ausgelöst werden.</div>
+    <div class="interv-grid" id="interventions"></div>
+  </section>
+
+</div>
+
+<div class="footer">
+  <div class="footer-row">
+    <div class="footer-item"><strong>Stichtag</strong>2026-05-11</div>
+    <div class="footer-item"><strong>Stichprobe</strong>Demo · n simuliert pro Instrument</div>
+    <div class="footer-item"><strong>Methodik</strong>AIVC Diagnostik-Familie · 5 Instrumente · Composite aus 5 Sub-Dimensionen</div>
+    <div class="footer-item"><strong>Coach</strong>Jay Manuzon · AI Value Capturer</div>
+  </div>
+</div>
+
+<div class="drawer-backdrop" id="drawerBackdrop"></div>
+<aside class="drawer" id="drawer" aria-hidden="true" role="dialog" aria-labelledby="drawerTitle">
+  <div class="drawer-header">
+    <button class="drawer-close" id="drawerClose" aria-label="Schließen">×</button>
+    <div class="drawer-title" id="drawerTitle"></div>
+    <div class="drawer-subtitle" id="drawerSubtitle"></div>
+    <div class="drawer-meta-row">
+      <div class="drawer-meta-item">Reife<strong id="drawerReife"></strong></div>
+      <div class="drawer-meta-item">Durchdringung<strong id="drawerDurch"></strong></div>
+      <div class="drawer-meta-item">Stichprobe<strong id="drawerN"></strong></div>
+    </div>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+</aside>
+
+<script>
+  // === DATA ===
+  const LAYERS = [
+    {
+      id: 'AIVCH',
+      title: 'AIVCH — Führungsebene',
+      letter: 'H',
+      subtitle: 'Führungsebene · Vision, Sponsoring, Vorbild',
+      shortHeader: 'Führungsebene',
+      desc: 'Wie klar, glaubwürdig und investiv die Unternehmensführung KI-Wertschöpfung trägt.',
+      reife: 7.8,
+      durch: 72,
+      n: 18,
+      subDims: [
+        { name: 'Vision & strategische Klarheit', score: 8.4 },
+        { name: 'Sichtbares Sponsoring', score: 7.9 },
+        { name: 'Kommunikation in die Organisation', score: 7.6 },
+        { name: 'Vorbildfunktion im KI-Einsatz', score: 7.1 },
+        { name: 'Investitionsentscheidungen', score: 8.0 }
+      ],
+      reading: 'Die Führung hat eine klare Erzählung und investiert. Der Engpass ist nicht das Bekenntnis, sondern die Übersetzung nach unten — Vorbildfunktion ist die relativ dünnste Sub-Dimension.'
+    },
+    {
+      id: 'AIVCO',
+      title: 'AIVCO — Bereichsebene',
+      letter: 'O',
+      subtitle: 'Bereichsebene · Strukturen, Rollen, Kennzahlen',
+      shortHeader: 'Bereichsebene',
+      desc: 'Wie das Organisationssystem die Strategie in Strukturen, Rollen und Steuerung gießt.',
+      reife: 6.5,
+      durch: 58,
+      n: 42,
+      subDims: [
+        { name: 'Bereichsstrategien zur KI-Nutzung', score: 6.9 },
+        { name: 'Rollen & Verantwortung', score: 6.2 },
+        { name: 'Schnittstellen zwischen Bereichen', score: 5.8 },
+        { name: 'KPIs & Steuerung', score: 6.8 },
+        { name: 'Lern- & Skalierungsmechanismen', score: 6.8 }
+      ],
+      reading: 'Die Bereiche bewegen sich, aber unkoordiniert. Die Schnittstellen sind die schwächste Stelle — hier verpuffen Synergien zwischen den Bereichen, die jeder für sich vorankommt.'
+    },
+    {
+      id: 'AIVCIR',
+      title: 'AIVCIR — Unternehmensgerüst',
+      letter: 'IR',
+      subtitle: 'Unternehmensgerüst · Datenarchitektur, Toolchain, Sicherheit',
+      shortHeader: 'Unternehmensgerüst',
+      desc: 'Ob das technologische Gerüst tatsächlich das tragen kann, was die Strategie verspricht.',
+      reife: 5.2,
+      durch: 48,
+      n: 12,
+      subDims: [
+        { name: 'Datenarchitektur & -qualität', score: 4.6 },
+        { name: 'KI-Toolchain & Plattform', score: 5.8 },
+        { name: 'Sicherheit & Compliance', score: 6.4 },
+        { name: 'Skalierbarkeit & Performance', score: 4.8 },
+        { name: 'Integration in Bestandssysteme', score: 4.4 }
+      ],
+      reading: 'Das Gerüst ist die kritische Engstelle. Sicherheit ist vorzeigbar, aber Daten und Integration sind nicht stabil genug, um Skalierung zu tragen. Investitionen wirken, bleiben aber unsichtbar.'
+    },
+    {
+      id: 'AIVCHW',
+      title: 'AIVCHW — Arbeitsplatzebene',
+      letter: 'HW',
+      subtitle: 'Arbeitsplatzebene · individuell bis Team',
+      shortHeader: 'Arbeitsplatzebene',
+      desc: 'Was tatsächlich am Schreibtisch oder im Team verfügbar und nutzbar ist.',
+      reife: 4.6,
+      durch: 35,
+      n: 64,
+      subDims: [
+        { name: 'Tool-Verfügbarkeit am Arbeitsplatz', score: 5.6 },
+        { name: 'User Experience & Adoption', score: 4.2 },
+        { name: 'Schulung & Befähigung', score: 4.0 },
+        { name: 'Lizenz- & Zugriffsmodelle', score: 5.4 },
+        { name: 'Team-spezifische Adaption', score: 3.8 }
+      ],
+      reading: 'Werkzeuge sind teilweise da, aber Schulung und team-spezifische Adaption hinken. Der Sprung von „Lizenz vorhanden" zu „im Workflow verankert" findet kaum statt.'
+    },
+    {
+      id: 'AIVCIO',
+      title: 'AIVCIO — Prozessebene',
+      letter: 'IO',
+      subtitle: 'Prozessebene · Tasks, Automatisierung, Messbarkeit',
+      shortHeader: 'Prozessebene',
+      desc: 'Ob KI in den tatsächlichen Arbeitsabläufen messbar Wertschöpfung erzeugt.',
+      reife: 3.2,
+      durch: 22,
+      n: 78,
+      subDims: [
+        { name: 'Prozessklarheit & Task-Identifikation', score: 3.6 },
+        { name: 'Automatisierungs- & Augmentierungsgrad', score: 2.8 },
+        { name: 'Prozess-Schnittstellen & Übergaben', score: 3.0 },
+        { name: 'Messbarkeit der KI-Wertbeiträge', score: 2.6 },
+        { name: 'Reifegrad pro Workflow-Typ', score: 4.0 }
+      ],
+      reading: 'Die Prozessebene ist die schwächste — und damit der Ort, an dem die Strategie real wird oder nicht. Ohne Messbarkeit ist Lernen schwer, ohne Lernen kein Aufholen.'
+    }
+  ];
+
+  const X_DIMS = ['Klarheit', 'Befähigung', 'Kultur', 'Daten & Tech', 'Governance'];
+  const HEATMAP = [
+    [8.4, 7.1, 7.4, 7.6, 8.0],
+    [6.9, 6.2, 6.4, 6.6, 6.8],
+    [5.0, 5.4, 4.6, 4.8, 6.4],
+    [4.8, 4.0, 4.6, 5.4, 4.6],
+    [3.6, 3.4, 3.0, 2.8, 3.2]
+  ];
+
+  const INTERVENTIONS = [
+    {
+      prio: 1,
+      title: 'Operationalisierungslücke schließen',
+      targets: 'AIVCH × AIVCIO · Spannung 4,6 Punkte',
+      desc: 'Die strategische Klarheit der Führung in konkrete Prozess-Reife übersetzen. Drei bis fünf priorisierte Workflows als Leuchttürme, mit messbaren KI-Wertbeiträgen und Sichtbarkeit auf C-Level.',
+      methods: 'AIVC 4-Step · Use Case Funnel · Coach HQ'
+    },
+    {
+      prio: 2,
+      title: 'Arbeitsplatz aktivieren — vom Tool zur Anwendung',
+      targets: 'AIVCHW × AIVCIO · Durchdringungs-Lücke 13 Prozentpunkte',
+      desc: 'Werkzeuge sind verfügbar, aber nicht im Workflow verankert. Pro Bereich ein Aktivierungsprogramm — Schulung, team-spezifische Use Cases, Persona-Build — statt zentraler Massentrainings.',
+      methods: 'Learning Packages · Persona-Build · 6-Week Program'
+    },
+    {
+      prio: 3,
+      title: 'Konsistenz durch Cross-Level-Dialog',
+      targets: 'Alle fünf Ebenen · Konsistenz-Index unter Schwellenwert',
+      desc: 'Strukturierter Dialog zwischen Führung, Bereichsleitung und operativer Ebene alle sechs bis acht Wochen, mit Aussage- statt Berichtspflicht. Macht Brüche früh sichtbar und schafft Rückkopplung.',
+      methods: 'Diagnostics HQ · Profiler HQ · Change HQ'
+    }
+  ];
+
+  // === HELPERS ===
+  function colorClass(score) {
+    if (score >= 6.5) return 'green';
+    if (score >= 4) return 'amber';
+    return 'red';
+  }
+  function scoreColor(score) {
+    if (score >= 7) return '#2E7D32';
+    if (score >= 5.5) return '#9CCC65';
+    if (score >= 4) return '#F9A825';
+    if (score >= 2.5) return '#E65100';
+    return '#C62828';
+  }
+  function consistency(layers) {
+    const scores = layers.map(l => l.reife);
+    const span = Math.max(...scores) - Math.min(...scores);
+    return { value: Math.max(0, 10 - span), span: span };
+  }
+  function escapeHTML(s) {
+    return String(s).replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+  }
+
+  // === RENDER CASCADE ===
+  const cascadeRoot = document.getElementById('cascade');
+  LAYERS.forEach((layer, idx) => {
+    const cls = colorClass(layer.reife);
+    const card = document.createElement('div');
+    card.className = 'layer-card';
+    card.dataset.idx = idx;
+    card.setAttribute('role', 'button');
+    card.setAttribute('tabindex', '0');
+    card.innerHTML = `
+      <div class="layer-marker">
+        <span class="l-letter">${escapeHTML(layer.letter)}</span>
+        <span class="l-ord">Ebene ${idx + 1}</span>
+      </div>
+      <div class="layer-info">
+        <div class="l-title">${escapeHTML(layer.title)}</div>
+        <div class="l-subtitle">${escapeHTML(layer.subtitle)}</div>
+        <div class="l-desc">${escapeHTML(layer.desc)}</div>
+      </div>
+      <div class="layer-metrics">
+        <div class="m-row">
+          <span class="m-label">Reife</span>
+          <span class="m-score score-${cls}-text">${layer.reife.toFixed(1)}</span>
+          <div class="m-bar"><div class="m-bar-fill bar-${cls}" style="width: ${layer.reife * 10}%"></div></div>
+        </div>
+        <div class="m-row">
+          <span class="m-label">Durchdringung</span>
+          <span class="m-score score-${cls}-text">${layer.durch}%</span>
+          <div class="m-bar"><div class="m-bar-fill bar-${cls}" style="width: ${layer.durch}%"></div></div>
+        </div>
+      </div>
+      <div class="layer-arrow">›</div>
+    `;
+    card.addEventListener('click', () => openDrawer(idx));
+    card.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openDrawer(idx); }
+    });
+    cascadeRoot.appendChild(card);
+  });
+
+  // === RENDER BRÜCHE ===
+  const c = consistency(LAYERS);
+  document.getElementById('consistencyValue').textContent = c.value.toFixed(1);
+  document.getElementById('reifeSpan').textContent = c.span.toFixed(1);
+  const ratingEl = document.getElementById('consistencyRating');
+  if (c.value >= 7) { ratingEl.className = 'consistency-rating rating-high'; ratingEl.textContent = 'hoch'; }
+  else if (c.value >= 5) { ratingEl.className = 'consistency-rating rating-mid'; ratingEl.textContent = 'mittel'; }
+  else { ratingEl.className = 'consistency-rating rating-low'; ratingEl.textContent = 'niedrig'; }
+
+  const gaps = [
+    {
+      pair: 'AIVCH ↔ AIVCIO',
+      title: 'Führung hochreif, Prozesse hinken um 4,6 Punkte nach',
+      desc: 'Die strategische Klarheit der Führung (7,8) findet auf der Prozessebene (3,2) keine messbare Entsprechung. Strategie bleibt Verlautbarung, solange sie nicht in Workflows verankert ist.'
+    },
+    {
+      pair: 'AIVCIR ↔ AIVCHW',
+      title: 'Tech-Gerüst und Arbeitsplatz mit Übersetzungs-Lücke',
+      desc: 'Investitionen ins Unternehmensgerüst (5,2) kommen am Arbeitsplatz (4,6) nicht voll an. Schulung und Adoption als Brücke sind unterinvestiert — die teurere Investition davor liegt brach.'
+    }
+  ];
+  const gapsList = document.getElementById('gapsList');
+  gaps.forEach(g => {
+    const el = document.createElement('div');
+    el.className = 'gap-card';
+    el.innerHTML = `
+      <div class="gap-pair">${escapeHTML(g.pair)}</div>
+      <div class="gap-title">${escapeHTML(g.title)}</div>
+      <div class="gap-desc">${escapeHTML(g.desc)}</div>
+    `;
+    gapsList.appendChild(el);
+  });
+
+  // === RENDER HEATMAP ===
+  const hm = document.getElementById('heatmap');
+  const corner = document.createElement('div'); corner.className = 'hm-cell hm-corner'; hm.appendChild(corner);
+  X_DIMS.forEach(dim => {
+    const el = document.createElement('div');
+    el.className = 'hm-cell hm-col-header';
+    el.textContent = dim;
+    hm.appendChild(el);
+  });
+  LAYERS.forEach((layer, ri) => {
+    const rh = document.createElement('div');
+    rh.className = 'hm-cell hm-row-header';
+    rh.innerHTML = `${escapeHTML(layer.id)} <span class="rh-sub">${escapeHTML(layer.shortHeader)}</span>`;
+    hm.appendChild(rh);
+    HEATMAP[ri].forEach(val => {
+      const cell = document.createElement('div');
+      cell.className = 'hm-cell hm-data';
+      cell.style.background = scoreColor(val);
+      cell.style.color = (val >= 5.5 || val < 4) ? '#FFFFFF' : '#1D4477';
+      cell.textContent = val.toFixed(1);
+      hm.appendChild(cell);
+    });
+  });
+
+  // === RENDER INTERVENTIONS ===
+  const intervRoot = document.getElementById('interventions');
+  INTERVENTIONS.forEach(iv => {
+    const el = document.createElement('div');
+    el.className = `interv-card prio-${iv.prio}`;
+    el.innerHTML = `
+      <div class="interv-prio">Priorität ${iv.prio}</div>
+      <div class="interv-title">${escapeHTML(iv.title)}</div>
+      <div class="interv-targets">${escapeHTML(iv.targets)}</div>
+      <div class="interv-desc">${escapeHTML(iv.desc)}</div>
+      <div class="interv-methods"><em>Methodik:</em> ${escapeHTML(iv.methods)}</div>
+    `;
+    intervRoot.appendChild(el);
+  });
+
+  // === DRAWER ===
+  const drawer = document.getElementById('drawer');
+  const backdrop = document.getElementById('drawerBackdrop');
+
+  function openDrawer(idx) {
+    const layer = LAYERS[idx];
+    document.getElementById('drawerTitle').textContent = layer.title;
+    document.getElementById('drawerSubtitle').textContent = layer.subtitle;
+    document.getElementById('drawerReife').textContent = layer.reife.toFixed(1) + ' / 10';
+    document.getElementById('drawerDurch').textContent = layer.durch + ' %';
+    document.getElementById('drawerN').textContent = 'n = ' + layer.n;
+
+    const body = document.getElementById('drawerBody');
+    body.innerHTML = '';
+
+    const t1 = document.createElement('div');
+    t1.className = 'drawer-section-title';
+    t1.textContent = 'Sub-Dimensionen — Reife pro Aspekt';
+    body.appendChild(t1);
+
+    layer.subDims.forEach(sd => {
+      const row = document.createElement('div');
+      row.className = 'sub-dim';
+      const color = scoreColor(sd.score);
+      const txtColor = sd.score >= 6.5 ? 'var(--score-green)' : sd.score >= 4 ? 'var(--score-amber)' : 'var(--score-red)';
+      row.innerHTML = `
+        <div class="sub-name">${escapeHTML(sd.name)}</div>
+        <div class="sub-score" style="color:${txtColor}">${sd.score.toFixed(1)}</div>
+        <div class="sub-bar"><div class="sub-bar-fill" style="width:${sd.score*10}%; background:${color}"></div></div>
+      `;
+      body.appendChild(row);
+    });
+
+    const t2 = document.createElement('div');
+    t2.className = 'drawer-section-title';
+    t2.textContent = 'Lesart aus Coach-Sicht';
+    body.appendChild(t2);
+    const r = document.createElement('div');
+    r.className = 'reading-block';
+    r.textContent = layer.reading;
+    body.appendChild(r);
+
+    drawer.classList.add('open');
+    drawer.setAttribute('aria-hidden', 'false');
+    backdrop.classList.add('open');
+  }
+
+  function closeDrawer() {
+    drawer.classList.remove('open');
+    drawer.setAttribute('aria-hidden', 'true');
+    backdrop.classList.remove('open');
+  }
+  document.getElementById('drawerClose').addEventListener('click', closeDrawer);
+  backdrop.addEventListener('click', closeDrawer);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+</script>
+</body>
+</html>
